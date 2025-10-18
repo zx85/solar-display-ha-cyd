@@ -26,7 +26,7 @@ To get this working you'll first need to install MicroPython on your device. The
 
 I use Microsoft [Visual Studio Code](https://code.visualstudio.com/) with the [Pymakr-preview](https://marketplace.visualstudio.com/items?itemName=pycom.pymakr-preview) extension installed (**note:** it's the preview version that, at time of writing, actually works. For some reason the standard version doesn't!)
 
-It should be fairly straightforward to copy the code to the device.
+It should be fairly straightforward to copy the code to the device using [adafruit-ampy](https://pypi.org/project/adafruit-ampy/), eg. `ampy -pCOM5 put main.py` etc...
 
 
 ### Configuring Home Assistant

@@ -36,7 +36,7 @@ gc.collect()
 # load the fonts
 font = XglcdFont('fonts/FuturaNum21x39.c', 21, 39, 46)
 font_uom = XglcdFont('fonts/Calibri12x14.c', 12, 14, 87)
-font_num = XglcdFont('fonts/FuturaNum20x22.c', 20, 22, 47)
+font_num = XglcdFont('fonts/FuturaNum17x21.c', 17, 21, 47)
 font_icon = XglcdFont('fonts/Emoji24x24.c',24, 24, 49)
 
 # Local time doings
@@ -82,7 +82,6 @@ def get_ha(ha_info):
 
 def validate_data(solar_usage):
     # Sanity check printing business
-    success=True
     for each_param in ["timestamp",
                        "solar_in",
                        "battery_per",
@@ -90,7 +89,8 @@ def validate_data(solar_usage):
                        "power_used",
                        "solar_today",
                        "export_today",
-                       "grid_in_today"]:
+                       "grid_in_today",
+                       "presence"]:
         if each_param in solar_usage:
             print(f"{each_param} is {solar_usage[each_param]}")
         # Extra bit to sort out occasional negative export
@@ -99,11 +99,8 @@ def validate_data(solar_usage):
                     solar_usage[each_param]="0.0"   
         else:
             print(f"{each_param} is empty - skipping this run")
-            success=False
-    if success:
-        return solar_usage
-    else:
-        return False
+            return False
+    return solar_usage
 
 def bl_control(timestamp):
     global bl_state
@@ -194,14 +191,14 @@ def display_data(solar_usage,force=False):
             export_today_per=int(float(solar_usage["export_today"])/export_today_max*100)
             export_today_uom="kWh[[today"
 
-            display.draw_text(180, 210, solar_usage["export_today"][:4],font, color565(192, 255, 192), landscape=True) # export_today value
-            display.draw_vline(218,140,69,color565(64, 64, 64)) # export_today line
-            display.draw_text(220, 206, export_today_uom,font_uom, color565(224, 224, 224), landscape=True)
+            display.draw_text(180, 228, solar_usage["export_today"][:4],font, color565(192, 255, 192), landscape=True) # export_today value
+            display.draw_vline(218,159,69,color565(64, 64, 64)) # export_today line
+            display.draw_text(220, 224, export_today_uom,font_uom, color565(224, 224, 224), landscape=True)
 
-            display.draw_text(148, 200, "6", font_icon, color565(64, 192, 64), landscape=True) # up
-            display.draw_text(148, 176, "4", font_icon, color565(192, 192, 192), landscape=True) # zap
+            display.draw_text(148, 218, "6", font_icon, color565(192, 255, 192), landscape=True) # up
+            display.draw_text(148, 194, "4", font_icon, color565(192, 192, 192), landscape=True) # zap
 
-            draw_arc(display, 165, 140, 33, 5, export_today_per,color565(64, 0, 0))
+            draw_arc(display, 165, 158, 33, 5, export_today_per,color565(64, 0, 0))
 
             ##################
             # grid_in - in W #
@@ -249,14 +246,14 @@ def display_data(solar_usage,force=False):
             grid_in_today_per=int(float(solar_usage["grid_in_today"])/grid_in_today_max*100)
             grid_in_today_uom="kWh[[today"
 
-            display.draw_text(180, 100, solar_usage["grid_in_today"][:4],font, color565(64, 64, 255), landscape=True)
-            display.draw_vline(218,29,69,color565(64, 64, 64)) # grid_in_today line
-            display.draw_text(220, 94, grid_in_today_uom,font_uom, color565(224, 224, 224), landscape=True)
+            display.draw_text(180, 138, solar_usage["grid_in_today"][:4],font, color565(64, 64, 255), landscape=True)
+            display.draw_vline(218,67,69,color565(64, 64, 64)) # grid_in_today line
+            display.draw_text(220, 132, grid_in_today_uom,font_uom, color565(224, 224, 224), landscape=True)
 
-            display.draw_text(148, 86, "7", font_icon, color565(64, 64, 192), landscape=True) # down
-            display.draw_text(148, 62, "4", font_icon, color565(192, 192, 192), landscape=True) # zap
+            display.draw_text(148, 124, "7", font_icon, color565(64, 64, 192), landscape=True) # down
+            display.draw_text(148, 100, "4", font_icon, color565(192, 192, 192), landscape=True) # zap
 
-            draw_arc(display, 165, 30, 32, 6, grid_in_today_per,color565(64, 0, 0))
+            draw_arc(display, 165, 68, 32, 6, grid_in_today_per,color565(64, 0, 0))
 
             ##################
             # battery - in % #
@@ -278,10 +275,22 @@ def display_data(solar_usage,force=False):
             # timestamp hh:mm #
             ###################
             # note: @ symbol is actually ; in the font bytecode
-            display.draw_text(1, 319, f";{solar_usage["timestamp"].split("T")[1][:5]}", font_num, color565(64, 64, 64), landscape=True) # time
-    
+            display.draw_text(1, 319, f"{solar_usage["timestamp"].split("T")[1][:5]}", font_num, color565(64, 64, 64), landscape=True) # time
+
+            # presence #
+            for index, initial in enumerate('jBCE'):
+                if initial in solar_usage['presence']:
+                    status_colour=color565(64, 128, 64)
+                else:
+                    status_colour=color565(32, 32, 32)
+                display.draw_text(125+index*28, 40,chr(59+index), font_num, status_colour, landscape=True) # person
+                display.draw_circle(134+index*28, 31, 12, status_colour)
+
+ 
     else: # data not valid
             display.fill_rectangle(238, 0, 2, 2, color565(0,192,192)) # done
+
+
 
 # Arc drawing nicked from here https://www.scattergood.io/arc-drawing-algorithm/
 def draw_arc(display, x, y, r1, r2, per,colour):
