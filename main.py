@@ -280,11 +280,11 @@ def display_data(solar_usage,force=False):
             # presence #
             for index, initial in enumerate('jBCE'):
                 if initial in solar_usage['presence']:
-                    status_colour=color565(64, 128, 64)
+                    status_colour=color565(128, 192, 128)
                 else:
-                    status_colour=color565(32, 32, 32)
-                display.draw_text(125+index*28, 40,chr(59+index), font_num, status_colour, landscape=True) # person
-                display.draw_circle(134+index*28, 31, 12, status_colour)
+                    status_colour=color565(16, 16, 16)
+                display.draw_text(125+index*29, 40,chr(59+index), font_num, status_colour, landscape=True) # person
+                display.draw_circle(134+index*29, 31, 12, status_colour)
 
  
     else: # data not valid
