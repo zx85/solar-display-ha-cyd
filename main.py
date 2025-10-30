@@ -6,13 +6,10 @@ import uasyncio
 import urequests as requests
 from time import sleep, gmtime, localtime
 import network
-from machine import Pin, SPI, reset
+from machine import Pin, reset
 
-sys.path.append("/include")
-# external things
-from ili9341 import Display, color565
-from xglcd_font import XglcdFont
-from math import sin,cos,pi
+# Class that puts things on the screen
+from include.solar_display import SolarDisplay
 
 # Global variables so it can be persistent
 solar_usage = {}
@@ -27,17 +24,11 @@ bl_state = True
 BL_NIGHT_START = const(23)
 BL_NIGHT_END = const(5)
 
-# Define the display doings
-spi1 = SPI(1, baudrate=40000000, sck=Pin(14), mosi=Pin(13))
-display = Display(spi1, dc=Pin(2), cs=Pin(15), rst=Pin(0), rotation=270)
+display=SolarDisplay()
+
 bl_pin.on()
 gc.collect()
 
-# load the fonts
-font = XglcdFont('fonts/FuturaNum21x39.c', 21, 39, 46)
-font_uom = XglcdFont('fonts/Calibri12x14.c', 12, 14, 87)
-font_num = XglcdFont('fonts/FuturaNum17x21.c', 17, 21, 47)
-font_icon = XglcdFont('fonts/Emoji24x24.c',24, 24, 49)
 
 # Local time doings
 def stringTime(thisTime):
@@ -102,7 +93,7 @@ def validate_data(solar_usage):
             return False
     return solar_usage
 
-def bl_control(timestamp):
+def backlight_control(timestamp):
     global bl_state
     timestamp_hour=timestamp.split("T")[1][:2]
     if timestamp_hour==("%02d" % (BL_NIGHT_END)) and not(bl_state):
@@ -117,204 +108,23 @@ def bl_control(timestamp):
 # Display function - does all the doings
 def display_data(solar_usage,force=False):
     if solar_usage:=validate_data(solar_usage):
-        if force or (solar_usage["timestamp"] != solar_usage["prev_timestamp"]):
-            gc.collect()
-            print("Solis data has been updated - do the LCD thing...")
-            display.clear()
+      print("Valid data received..")
+      if solar_usage['timestamp']!=solar_usage['prev_timestamp'] or force:
+        print("Timestamp changed - refreshing full display")
+        gc.collect()
+        display.solar_data(solar_usage)
+        backlight_control(solar_usage["timestamp"]) # do stuff with the backlight
+        # Update the previous values if they're different
+        if solar_usage['timestamp']!=solar_usage['prev_timestamp']:
+          solar_usage["prev_battery_int"] = int(float(solar_usage["battery_per"]))
+          solar_usage["prev_timestamp"] = solar_usage["timestamp"]
+      else:
+        # Just update the presence
+        print("Timestamp hasn't changed - only updating presence")
+        display.presence(solar_usage)
 
-            bl_control(solar_usage["timestamp"]) # do stuff with the backlight
-
-            ############
-            # solar_in #
-            ############
-            solar_in_max=5000
-            solar_in_val=float(solar_usage["solar_in"])
-            solar_in_per=int(solar_in_val/solar_in_max*100)
-
-            if solar_in_val>1000:
-                solar_in=str(solar_in_val/1000)[:4]
-                solar_in_uom="kW[[now"
-            else:
-                solar_in=solar_usage["solar_in"].split(".")[0]
-                solar_in_uom="W[[now"
-            display.draw_text(65, 319, solar_in,font, color565(192, 255, 255), landscape=True) # solar_in value
-            display.draw_vline(104,250,69,color565(64, 64, 64)) # solar_in line
-            display.draw_text(105, 316, solar_in_uom,font_uom, color565(224, 224, 224), landscape=True) # solar_in uom
-
-            if solar_in_val>1800:
-                display.draw_text(32, 292, "1", font_icon, color565(192, 255, 255), landscape=True) # sun
-            elif solar_in_val>1000:
-                display.draw_text(32, 292, "2", font_icon, color565(64, 192, 192), landscape=True) # partial_cloud
-            else:
-                display.draw_text(32, 292, "3", font_icon, color565(128, 128, 128), landscape=True) # cloud
-
-            draw_arc(display, 48, 250, 30, 5, solar_in_per,color565(64, 0, 0))
-
-
-            ########################
-            # solar_today - in kWh #
-            ########################
-            solar_today_max=30.0
-            solar_today_per=int(float(solar_usage["solar_today"])/solar_today_max*100)
-            solar_today_uom="kWh[[today"
-            display.draw_text(180, 319, solar_usage["solar_today"][:4], font, color565(192, 255, 255), landscape=True) # solar_today value
-            display.draw_vline(218,250,69,color565(64, 64, 64)) # solar_today line
-            display.draw_text(220, 316, solar_today_uom,font_uom, color565(224, 224, 224), landscape=True) # solar_today uom
-            display.draw_text(148, 293, "1", font_icon, color565(192, 255, 255), landscape=True) # sun
-
-            draw_arc(display, 165, 250, 30, 5, solar_today_per,color565(64, 0, 0))
-
-            #####################
-            # power_used - in W #
-            #####################
-            power_used_max=15000
-            power_used_val=float(solar_usage["power_used"])
-            power_used_per=int(power_used_val/power_used_max*100)
-            if power_used_val>1000:
-                power_used=str(power_used_val/1000)[:4]
-                power_used_uom="kW[[now"
-            else:
-                power_used=solar_usage["power_used"].split(".")[0]
-                power_used_uom="W[[now"
-
-            display.draw_text(65, 228, power_used,font, color565(255, 255, 255), landscape=True) # power_used value
-            display.draw_vline(104,159,69,color565(64, 64, 64)) # power_used line
-            display.draw_text(105, 224, power_used_uom,font_uom, color565(224, 224, 224), landscape=True) # power_used uom
-            display.draw_text(32, 206, "5", font_icon, color565(64, 64, 64), landscape=True) # plug
-
-            draw_arc(display, 48, 162, 30, 5, power_used_per,color565(64, 0, 0))
-
-            #########################
-            # export_today - in kWh #
-            #########################
-            export_today_max=25.0
-            export_today_per=int(float(solar_usage["export_today"])/export_today_max*100)
-            export_today_uom="kWh[[today"
-
-            display.draw_text(180, 228, solar_usage["export_today"][:4],font, color565(192, 255, 192), landscape=True) # export_today value
-            display.draw_vline(218,159,69,color565(64, 64, 64)) # export_today line
-            display.draw_text(220, 224, export_today_uom,font_uom, color565(224, 224, 224), landscape=True)
-
-            display.draw_text(148, 218, "6", font_icon, color565(192, 255, 192), landscape=True) # up
-            display.draw_text(148, 194, "4", font_icon, color565(192, 192, 192), landscape=True) # zap
-
-            draw_arc(display, 165, 158, 33, 5, export_today_per,color565(64, 0, 0))
-
-            ##################
-            # grid_in - in W #
-            ##################
-            grid_in_max=15000
-            grid_out_max=5000
-            grid_in_val=float(solar_usage["grid_in"])
-            grid_in_per=int(abs(grid_in_val)/grid_in_max*100)
-            if abs(grid_in_val)>1000:
-                grid_in=str(abs(grid_in_val/1000))[:4]
-                grid_in_uom="kW[[now"
-            else:
-                grid_in=str(abs(grid_in_val)).split(".")[0]
-                grid_in_uom="W[[now"
-
-            # colours for import / export
-            if grid_in_val<0:
-                grid_colour=color565(128, 128, 255) # pink
-            elif grid_in_val>0:
-                grid_colour=color565(128, 255, 128) # green
-                # recalibrate for export
-                grid_in_per=int(abs(grid_in_val)/grid_out_max*100)
-            else:
-                grid_colour=color565(255, 255, 255) # grey
-
-            display.draw_text(65, 138, grid_in,font, grid_colour, landscape=True) # grid_in value
-            display.draw_vline(104,69,69,color565(64, 64, 64)) # grid_in line
-            display.draw_text(105, 132, grid_in_uom,font_uom, color565(224, 224, 224), landscape=True) # grid_in uom
-
-            if grid_in_val<0:
-                display.draw_text(32, 130, "7", font_icon, color565(64, 64, 192), landscape=True) # down
-                display.draw_text(32, 106, "4", font_icon, color565(192, 192, 192), landscape=True) # zap
-            elif grid_in_val>0:
-                display.draw_text(32, 130, "6", font_icon, color565(64, 192, 64), landscape=True) # up
-                display.draw_text(32, 106, "4", font_icon, color565(192, 192, 192), landscape=True) # zap
-            else:
-                display.draw_text(32, 116, "4", font_icon, color565(192, 192, 192), landscape=True) # zap
-
-            draw_arc(display, 48, 74, 30, 5, grid_in_per,color565(64, 0, 0))
-
-            ##########################
-            # grid_in_today - in kWh #
-            ##########################
-            grid_in_today_max=40.0
-            grid_in_today_per=int(float(solar_usage["grid_in_today"])/grid_in_today_max*100)
-            grid_in_today_uom="kWh[[today"
-
-            display.draw_text(180, 138, solar_usage["grid_in_today"][:4],font, color565(64, 64, 255), landscape=True)
-            display.draw_vline(218,67,69,color565(64, 64, 64)) # grid_in_today line
-            display.draw_text(220, 132, grid_in_today_uom,font_uom, color565(224, 224, 224), landscape=True)
-
-            display.draw_text(148, 124, "7", font_icon, color565(64, 64, 192), landscape=True) # down
-            display.draw_text(148, 100, "4", font_icon, color565(192, 192, 192), landscape=True) # zap
-
-            draw_arc(display, 165, 68, 32, 6, grid_in_today_per,color565(64, 0, 0))
-
-            ##################
-            # battery - in % #
-            ##################
-            battery_per_val=float(solar_usage["battery_per"])
-            # note: % symbol is actually / in the font bytecode
-            display.draw_text(98, 52, f"{solar_usage["battery_per"].split(".")[0]}/",font_num, color565(255, 230, 230), landscape=True)
-            display.fill_rectangle(12, 25, 6, 16, color565(255, 192, 192)) # battery top
-            display.fill_rectangle(18, 18, 60, 30, color565(255, 192, 192)) # battery outline
-            display.fill_rectangle(21, 22, 50-int(battery_per_val/2), 22, color565(0, 0, 0)) # battery drain
-            if battery_per_val<solar_usage["prev_battery_int"]: # battery goes down
-                display.fill_polygon(3,87,35,8,color565(64, 64, 192),0)
-            elif battery_per_val>solar_usage["prev_battery_int"]: # battery goes up
-                display.fill_polygon(3,91,33,8,color565(64, 192, 64),180)
-            else: # battery stays the same
-                display.fill_rectangle(86,24,6,20,color565(192, 192, 192))
-
-            ###################
-            # timestamp hh:mm #
-            ###################
-            # note: @ symbol is actually ; in the font bytecode
-            display.draw_text(1, 319, f"{solar_usage["timestamp"].split("T")[1][:5]}", font_num, color565(64, 64, 64), landscape=True) # time
-
-            # presence #
-            for index, initial in enumerate('jBCE'):
-                if initial in solar_usage['presence']:
-                    status_colour=color565(128, 192, 128)
-                else:
-                    status_colour=color565(16, 16, 16)
-                display.draw_text(125+index*29, 40,chr(59+index), font_num, status_colour, landscape=True) # person
-                display.draw_circle(134+index*29, 31, 12, status_colour)
-
- 
     else: # data not valid
-            display.fill_rectangle(238, 0, 2, 2, color565(0,192,192)) # done
-
-
-
-# Arc drawing nicked from here https://www.scattergood.io/arc-drawing-algorithm/
-def draw_arc(display, x, y, r1, r2, per,colour):
-    gc.collect()
-    if per>=100:
-        fraction=1.0
-    else:
-        fraction=per/100
-    start_angle=pi/2
-    xs=x # cos(0) = 1
-    ys=y+r1 # sin(0) = 0
-
-#    display.draw_line(xs1,ys1,xs2,ys2,colour)
-
-    max_angle=start_angle+(fraction*pi) # end at 270 degrees
-    each_angle=start_angle # start at 90 degress
-    step=pi/90
-    while each_angle<max_angle:
-
-        display.fill_polygon(4,
-                            int(xs+(r1*cos(each_angle))),
-                            int(ys+(r1*sin(each_angle))),
-                            r2,colour,45+int(each_angle/pi*180))
-        each_angle+=step
+      display.status_invalid_data()
 
 # Coroutine: get the solis data every 45 seconds
 async def timer_ha_data(ha_info):
@@ -322,19 +132,16 @@ async def timer_ha_data(ha_info):
     solar_usage["prev_battery_int"] = 0
     solar_usage["prev_timestamp"] = "0"
     while True:
-        display.fill_rectangle(238, 0, 2, 2, color565(192, 64, 64)) # checking
+        display.status_checking()
         await uasyncio.sleep(1)
         gc.collect()
         solar_dict = get_ha(ha_info)
         if "timestamp" in solar_dict:
-            display.fill_rectangle(238, 0, 2, 2, color565(0,0,0)) # done
+            display.status_ok()
             solar_usage.update(solar_dict)
             display_data(solar_usage)
-            # ready to loop then
-            solar_usage["prev_battery_int"] = float(solar_usage["battery_per"])
-            solar_usage["prev_timestamp"] = solar_usage["timestamp"]
         else:
-            display.fill_rectangle(238, 0, 2, 2, color565(0,0,192)) # failed
+            display.status_failed()
             print("No data returned")
             if "resp" in solar_dict:
                 solar_usage["resp"] = solar_dict["resp"]
@@ -429,7 +236,7 @@ def setup():
 
     # display IP address
     print("\nWifi connected - IP address is: " + ip_address)
-    display.draw_text(80, 310, ip_address,font, color565(224, 224, 224), landscape=True)
+    display.ip_address(ip_address)
 
     sleep(1)
     # clear down all the doings
@@ -440,10 +247,10 @@ def setup():
     del sys.modules["server"]
     gc.collect()
 
-    return(ha_info,display)
+    return(ha_info)
 
 if __name__ == "__main__":
-    ha_info,display=setup()
+    ha_info=setup()
 
     try:
         # Start event loop and run entry point coroutine
