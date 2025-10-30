@@ -234,6 +234,14 @@ class SolarDisplay:
       self.display.fill_polygon(3,91,33,8,color565(64, 192, 64),180)
     else: # battery stays the same
       self.display.fill_rectangle(86,24,6,20,color565(192, 192, 192))
+    # charge and discharge modes
+    if solar_usage['solis_discharging']=='on':
+      self.display.fill_polygon(3,57,33,8,color565(64, 0, 0),0)
+      self.display.fill_rectangle(34,31,30,4,color565(64, 0, 0))
+    if solar_usage['solis_charging']=='on':
+      self.display.fill_polygon(3,35,33,8,color565(64, 0, 0),180)
+      self.display.fill_rectangle(34,31,30,4,color565(64, 0, 0))
+
 
   def timestamp(self,solar_usage):
     ###################
@@ -256,9 +264,17 @@ class SolarDisplay:
       rate_col=color565(64, 192, 64)
     else:
       rate_col=color565(192, 64, 64)
+    # power up special colour
+    if solar_usage['power_up']=='on':
+      rate_col=color565(192, 64, 192)
+    
     rate_string=f'{rate:.2f}?'.replace("-","@")
     print(f"rate_string is {rate_string}")
+
     self.display.draw_text(root_x, root_y, rate_string, font_num, rate_col, landscape=True) 
+    # power up rectangle
+    if solar_usage['power_up']=='on':
+      self.display.draw_rectangle(root_x-3, root_y-70, 25,75, rate_col) # outline
 
   def presence(self,solar_usage):
     # presence #

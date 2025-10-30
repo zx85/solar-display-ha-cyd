@@ -81,7 +81,11 @@ def validate_data(solar_usage):
                        "solar_today",
                        "export_today",
                        "grid_in_today",
-                       "presence"]:
+                       "presence",
+                       "cur_rate",
+                       "solis_charging",
+                       "solis_discharging",
+                       "power_up"]:
         if each_param in solar_usage:
             print(f"{each_param} is {solar_usage[each_param]}")
         # Extra bit to sort out occasional negative export
