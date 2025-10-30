@@ -4,7 +4,7 @@ import os
 import gc
 import uasyncio
 import urequests as requests
-from time import sleep, gmtime, localtime
+from time import sleep
 import network
 from machine import Pin, reset
 
@@ -21,38 +21,14 @@ clear_btn = Pin(0, Pin.IN, Pin.PULL_UP)
 bl_pin = Pin(21, Pin.OUT)
 bl_state = True
 # hours to turn the backlight off and on again
-BL_NIGHT_START = const(23)
-BL_NIGHT_END = const(5)
+# (based on the timestamp from the Solis - not sure what timezone that is...)
+BL_NIGHT_START = const(23) # 11pm
+BL_NIGHT_END = const(5) # 4am
 
 display=SolarDisplay()
 
 bl_pin.on()
 gc.collect()
-
-
-# Local time doings
-def stringTime(thisTime):
-    year, month, date, hour, minute, second, week_day, year_day = thisTime
-    week_day_lookup = b"MonTueWedThuFriSatSun"
-    month_lookup = b"JanFebMarAprMayJunJulAugSepOctNovDec"
-    stringTime = (
-        week_day_lookup.decode()[week_day * 3 : week_day * 3 + 3]
-        + ", "
-        + f"{date:02}"
-        + " "
-        + month_lookup.decode()[(month - 1) * 3 : (month - 1) * 3 + 3]
-        + " "
-        + f"{year:02}"
-        + " "
-        + f"{hour:02}"
-        + ":"
-        + f"{minute:02}"
-        + ":"
-        + f"{second:02}"
-        + " GMT"
-    )
-    return stringTime
-
 
 def get_ha(ha_info):
     headers={"Authorization": "Bearer "+ha_info['ha_token'].decode("utf-8"),
