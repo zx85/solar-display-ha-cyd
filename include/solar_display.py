@@ -14,7 +14,7 @@ from include.xglcd_font import XglcdFont
 # load the fonts
 font = XglcdFont('fonts/FuturaNum21x39.c', 21, 39, 46)
 font_uom = XglcdFont('fonts/Calibri12x14.c', 12, 14, 87)
-font_num = XglcdFont('fonts/FuturaNum17x21.c', 17, 21, 47)
+font_num = XglcdFont('fonts/FuturaNum17x21.c', 17, 21, 46)
 font_icon = XglcdFont('fonts/Emoji24x24.c',24, 24, 49)
 
 
@@ -61,6 +61,7 @@ class SolarDisplay:
     self.timestamp(solar_usage)
     self.battery(solar_usage)
     self.presence(solar_usage)
+    self.cur_rate(solar_usage)
 
   def ip_address(self,ip):
     self.display.draw_text(80, 310, ip,font, color565(224, 224, 224), landscape=True)
@@ -238,8 +239,26 @@ class SolarDisplay:
     ###################
     # timestamp hh:mm #
     ###################
-    # note: @ symbol is actually ; in the font bytecode
     self.display.draw_text(1, 319, f"{solar_usage["timestamp"].split("T")[1][:5]}", font_num, color565(64, 64, 64), landscape=True) # time
+
+  def cur_rate(self,solar_usage):
+    #######################################
+    # current agile rate - sent in pounds #
+    #######################################
+    root_x=12
+    root_y=135
+    rate=float(solar_usage['cur_rate'])*100
+    if rate>=15:
+       rate_col=color565(64, 64, 192)
+    elif rate>=10:
+      rate_col=color565(64, 192, 192)
+    elif rate>0:
+      rate_col=color565(64, 192, 64)
+    else:
+      rate_col=color565(192, 64, 64)
+    rate_string=f'{rate:.2f}?'.replace("-","@")
+    print(f"rate_string is {rate_string}")
+    self.display.draw_text(root_x, root_y, rate_string, font_num, rate_col, landscape=True) 
 
   def presence(self,solar_usage):
     # presence #
