@@ -91,7 +91,7 @@ class SolarDisplay:
     solar_in_per=int(solar_in_val/solar_in_max*100)
 
     if solar_in_val>1000:
-      solar_in=str(solar_in_val/1000)[:4]
+      solar_in_str=str(solar_in_val/1000)[:4]
       solar_in_uom="kW[[now"
     else:
       solar_in_str=f'{solar_in_val:.0f}'
