@@ -10,7 +10,7 @@ from machine import Pin, reset
 
 # Class that puts things on the screen
 from include.solar_display import SolarDisplay
-from include.ha_validation import validate_ha_data, filter_valid_data, safe_convert_to_float
+from include.ha_validation import validate_ha_data, filter_valid_data
 
 # Global variables so it can be persistent
 solar_usage = {}
@@ -73,12 +73,12 @@ def backlight_control(timestamp):
 
 # Display function - does all the doings
 def display_data(solar_usage,force=False):
-    if solar_usage:=process_ha_response(solar_usage):
+    if processed_solar_usage:=process_ha_response(solar_usage):
       print("Valid data received..")
       if solar_usage['timestamp']!=solar_usage['prev_timestamp'] or force:
         print("Timestamp changed - refreshing full display")
         gc.collect()
-        display.solar_data(solar_usage)
+        display.solar_data(processed_solar_usage)
         backlight_control(solar_usage["timestamp"]) # do stuff with the backlight
         # Update the previous values if they're different
         if solar_usage['timestamp']!=solar_usage['prev_timestamp']:
