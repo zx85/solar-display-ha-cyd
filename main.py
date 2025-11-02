@@ -62,7 +62,8 @@ def process_ha_response(data):
     cleaned_data = filter_valid_data(data)
     return cleaned_data
 
-def backlight_control(timestamp,bl_state):
+def backlight_control(timestamp):
+    bl_state=bl_pin.value()
     timestamp_hour=timestamp.split("T")[1][:2]
     if timestamp_hour==("%02d" % (BL_NIGHT_END)) and not(bl_state):
         print("Turning backlight on")
@@ -99,8 +100,6 @@ async def timer_ha_data(ha_info):
     global solar_usage
     solar_usage["prev_battery_int"] = 0
     solar_usage["prev_timestamp"] = "0"
-    # initialise bl_state
-    bl_state=True
     while True:
         display.status_checking()
         await uasyncio.sleep(1)
@@ -109,8 +108,8 @@ async def timer_ha_data(ha_info):
         if "timestamp" in solar_dict:
             display.status_ok()
             solar_usage.update(solar_dict)
-            bl_state=backlight_control(solar_usage["timestamp"],bl_state) # do stuff with the backlight
-            if bl_state:
+            backlight_control(solar_usage["timestamp"]) # do stuff with the backlight
+            if bl_pin.value(): # Only worth displaying data if the backlight's on.
                 display_data(solar_usage)
         else:
             display.status_failed()
@@ -139,8 +138,8 @@ async def wait_clear_button():
             sleep(2)
             os.remove(CRED_FILE)
             reset()
-        if not(bl_state): # only do this if the backlight is off
-            if bl_count<bl_max:
+        if not(bl_pin.value()): # only do this if the backlight is off
+            if bl_count<bl_max: # (although it's not immediately clear what 'this' is)
                 bl_count+=1
                 bl_pin.on()
             else:
