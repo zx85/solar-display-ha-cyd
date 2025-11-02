@@ -20,7 +20,7 @@ SOLIS_FILE = const("config/solis.env")
 
 clear_btn = Pin(0, Pin.IN, Pin.PULL_UP)
 bl_pin = Pin(21, Pin.OUT)
-bl_state = True
+
 # hours to turn the backlight off and on again
 # (based on the timestamp from the Solis - not sure what timezone that is...)
 BL_NIGHT_START = const(23) # 11pm
@@ -62,8 +62,7 @@ def process_ha_response(data):
     cleaned_data = filter_valid_data(data)
     return cleaned_data
 
-def backlight_control(timestamp):
-    global bl_state
+def backlight_control(timestamp,bl_state):
     timestamp_hour=timestamp.split("T")[1][:2]
     if timestamp_hour==("%02d" % (BL_NIGHT_END)) and not(bl_state):
         print("Turning backlight on")
@@ -73,6 +72,7 @@ def backlight_control(timestamp):
         print("Turning backlight off")
         bl_state=False
         bl_pin.off()
+    return bl_state
 
 # Display function - does all the doings
 def display_data(solar_usage,force=False):
@@ -97,9 +97,10 @@ def display_data(solar_usage,force=False):
 # Coroutine: get the solis data every 45 seconds
 async def timer_ha_data(ha_info):
     global solar_usage
-    global bl_state
     solar_usage["prev_battery_int"] = 0
     solar_usage["prev_timestamp"] = "0"
+    # initialise bl_state
+    bl_state=True
     while True:
         display.status_checking()
         await uasyncio.sleep(1)
@@ -108,7 +109,7 @@ async def timer_ha_data(ha_info):
         if "timestamp" in solar_dict:
             display.status_ok()
             solar_usage.update(solar_dict)
-            backlight_control(solar_usage["timestamp"]) # do stuff with the backlight
+            bl_state=backlight_control(solar_usage["timestamp"],bl_state) # do stuff with the backlight
             if bl_state:
                 display_data(solar_usage)
         else:
