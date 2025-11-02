@@ -10,6 +10,7 @@ from machine import Pin, reset
 
 # Class that puts things on the screen
 from include.solar_display import SolarDisplay
+from include.ha_validation import validate_ha_data, filter_valid_data, safe_convert_to_float
 
 # Global variables so it can be persistent
 solar_usage = {}
@@ -47,31 +48,16 @@ def get_ha(ha_info):
 
     return solar_dict
 
-def validate_data(solar_usage):
-    # Sanity check printing business
-    for each_param in ["timestamp",
-                       "solar_in",
-                       "battery_per",
-                       "grid_in",
-                       "power_used",
-                       "solar_today",
-                       "export_today",
-                       "grid_in_today",
-                       "presence",
-                       "cur_rate",
-                       "solis_charging",
-                       "solis_discharging",
-                       "power_up"]:
-        if each_param in solar_usage:
-            print(f"{each_param} is {solar_usage[each_param]}")
-        # Extra bit to sort out occasional negative export
-            if each_param=="export_today":
-                if float(solar_usage[each_param])<0:
-                    solar_usage[each_param]="0.0"   
-        else:
-            print(f"{each_param} is empty - skipping this run")
-            return False
-    return solar_usage
+def process_ha_response(data):
+    is_valid, errors, warnings = validate_ha_data(data)
+    
+    if not is_valid:
+        print(f"Data validation failed: {errors}")
+        return None  # Skip processing
+    
+    # Convert the data into numbers if required
+    cleaned_data = filter_valid_data(data)
+    return cleaned_data
 
 def backlight_control(timestamp):
     global bl_state
@@ -87,7 +73,7 @@ def backlight_control(timestamp):
 
 # Display function - does all the doings
 def display_data(solar_usage,force=False):
-    if solar_usage:=validate_data(solar_usage):
+    if solar_usage:=process_ha_response(solar_usage):
       print("Valid data received..")
       if solar_usage['timestamp']!=solar_usage['prev_timestamp'] or force:
         print("Timestamp changed - refreshing full display")

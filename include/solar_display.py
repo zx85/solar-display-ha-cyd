@@ -87,16 +87,16 @@ class SolarDisplay:
     # solar_in #
     ############
     solar_in_max=5000
-    solar_in_val=float(solar_usage["solar_in"])
+    solar_in_val=solar_usage["solar_in"]
     solar_in_per=int(solar_in_val/solar_in_max*100)
 
     if solar_in_val>1000:
       solar_in=str(solar_in_val/1000)[:4]
       solar_in_uom="kW[[now"
     else:
-      solar_in=solar_usage["solar_in"].split(".")[0]
+      solar_in_str=f'{solar_in_val:.0f}'
       solar_in_uom="W[[now"
-    self.display.draw_text(65, 319, solar_in,font, color565(192, 255, 255), landscape=True) # solar_in value
+    self.display.draw_text(65, 319, solar_in_str,font, color565(192, 255, 255), landscape=True) # solar_in value
     self.display.draw_vline(104,250,69,color565(64, 64, 64)) # solar_in line
     self.display.draw_text(105, 316, solar_in_uom,font_uom, color565(224, 224, 224), landscape=True) # solar_in uom
 
@@ -114,9 +114,10 @@ class SolarDisplay:
     # solar_today - in kWh #
     ########################
     solar_today_max=30.0
-    solar_today_per=int(float(solar_usage["solar_today"])/solar_today_max*100)
+    solar_today_per=solar_usage["solar_today"]/solar_today_max*100
+    solar_today_str=f'{solar_usage["solar_today"]}'[:4]
     solar_today_uom="kWh[[today"
-    self.display.draw_text(180, 319, solar_usage["solar_today"][:4], font, color565(192, 255, 255), landscape=True) # solar_today value
+    self.display.draw_text(180, 319, solar_today_str, font, color565(192, 255, 255), landscape=True) # solar_today value
     self.display.draw_vline(218,250,69,color565(64, 64, 64)) # solar_today line
     self.display.draw_text(220, 316, solar_today_uom,font_uom, color565(224, 224, 224), landscape=True) # solar_today uom
     self.display.draw_text(148, 293, "1", font_icon, color565(192, 255, 255), landscape=True) # sun
@@ -128,16 +129,16 @@ class SolarDisplay:
     # power_used - in W #
     #####################
     power_used_max=15000
-    power_used_val=float(solar_usage["power_used"])
+    power_used_val=solar_usage["power_used"]
     power_used_per=int(power_used_val/power_used_max*100)
     if power_used_val>1000:
-      power_used=str(power_used_val/1000)[:4]
+      power_used_str=f'{str(power_used_val/1000)}'[:4]
       power_used_uom="kW[[now"
     else:
-      power_used=solar_usage["power_used"].split(".")[0]
+      power_used_str=f'{power_used_val:.0f}'
       power_used_uom="W[[now"
 
-    self.display.draw_text(65, 228, power_used,font, color565(255, 255, 255), landscape=True) # power_used value
+    self.display.draw_text(65, 228, power_used_str,font, color565(255, 255, 255), landscape=True) # power_used value
     self.display.draw_vline(104,159,69,color565(64, 64, 64)) # power_used line
     self.display.draw_text(105, 224, power_used_uom,font_uom, color565(224, 224, 224), landscape=True) # power_used uom
     self.display.draw_text(32, 206, "5", font_icon, color565(64, 64, 64), landscape=True) # plug
@@ -149,10 +150,15 @@ class SolarDisplay:
     # export_today - in kWh #
     #########################
     export_today_max=25.0
-    export_today_per=int(float(solar_usage["export_today"])/export_today_max*100)
+    export_today_val=solar_usage["export_today"]
+    # Prevent negative values
+    if export_today_val<0:
+      export_today_val=0
+    export_today_str=f'{export_today_val}'[:4]
+    export_today_per=int(export_today_val/export_today_max*100)
     export_today_uom="kWh[[today"
 
-    self.display.draw_text(180, 228, solar_usage["export_today"][:4],font, color565(192, 255, 192), landscape=True) # export_today value
+    self.display.draw_text(180, 228, export_today_str,font, color565(192, 255, 192), landscape=True) # export_today value
     self.display.draw_vline(218,159,69,color565(64, 64, 64)) # export_today line
     self.display.draw_text(220, 224, export_today_uom,font_uom, color565(224, 224, 224), landscape=True)
 
@@ -167,13 +173,13 @@ class SolarDisplay:
     ##################
     grid_in_max=15000
     grid_out_max=5000
-    grid_in_val=float(solar_usage["grid_in"])
+    grid_in_val=solar_usage["grid_in"]
     grid_in_per=int(abs(grid_in_val)/grid_in_max*100)
     if abs(grid_in_val)>1000:
-      grid_in=str(abs(grid_in_val/1000))[:4]
+      grid_in_str=f'{abs(grid_in_val/1000)}'[:4]
       grid_in_uom="kW[[now"
     else:
-      grid_in=str(abs(grid_in_val)).split(".")[0]
+      grid_in_str=f'{abs(grid_in_val)}'.split(".")[0]
       grid_in_uom="W[[now"
 
     # colours for import / export
@@ -186,7 +192,7 @@ class SolarDisplay:
     else:
       grid_colour=color565(255, 255, 255) # grey
 
-    self.display.draw_text(65, 138, grid_in,font, grid_colour, landscape=True) # grid_in value
+    self.display.draw_text(65, 138, grid_in_str,font, grid_colour, landscape=True) # grid_in value
     self.display.draw_vline(104,69,69,color565(64, 64, 64)) # grid_in line
     self.display.draw_text(105, 132, grid_in_uom,font_uom, color565(224, 224, 224), landscape=True) # grid_in uom
 
@@ -206,10 +212,15 @@ class SolarDisplay:
     # grid_in_today - in kWh #
     ##########################
     grid_in_today_max=40.0
-    grid_in_today_per=int(float(solar_usage["grid_in_today"])/grid_in_today_max*100)
+    grid_in_today_val=solar_usage["grid_in_today"]
+    # Prevent negative values 
+    if grid_in_today_val<0:
+      grid_in_today_val=0
+    grid_in_today_str=f'{grid_in_today_val}'[:4]
+    grid_in_today_per=int(grid_in_today_val/grid_in_today_max*100)
     grid_in_today_uom="kWh[[today"
 
-    self.display.draw_text(180, 138, solar_usage["grid_in_today"][:4],font, color565(64, 64, 255), landscape=True)
+    self.display.draw_text(180, 138, grid_in_today_str,font, color565(64, 64, 255), landscape=True)
     self.display.draw_vline(218,67,69,color565(64, 64, 64)) # grid_in_today line
     self.display.draw_text(220, 132, grid_in_today_uom,font_uom, color565(224, 224, 224), landscape=True)
 
@@ -222,9 +233,10 @@ class SolarDisplay:
     ##################
     # battery - in % #
     ##################
-    battery_per_val=float(solar_usage["battery_per"])
+    battery_per_val=solar_usage["battery_per"]
+    battery_per_str=f'{battery_per_val}'.split('.')[0]
     # note: % symbol is actually / in the font bytecode
-    self.display.draw_text(98, 52, f"{solar_usage["battery_per"].split(".")[0]}/",font_num, color565(255, 230, 230), landscape=True)
+    self.display.draw_text(98, 52, f"{battery_per_str}/",font_num, color565(255, 230, 230), landscape=True)
     self.display.fill_rectangle(12, 25, 6, 16, color565(255, 192, 192)) # battery top
     self.display.fill_rectangle(18, 18, 60, 30, color565(255, 192, 192)) # battery outline
     self.display.fill_rectangle(21, 22, 50-int(battery_per_val/2), 22, color565(0, 0, 0)) # battery drain
@@ -255,7 +267,7 @@ class SolarDisplay:
     #######################################
     root_x=12
     root_y=135
-    rate=float(solar_usage['cur_rate'])*100
+    rate=solar_usage['cur_rate']*100
     if rate>=15:
        rate_col=color565(64, 64, 192)
     elif rate>=10:
@@ -268,10 +280,10 @@ class SolarDisplay:
     if solar_usage['power_up']=='on':
       rate_col=color565(192, 64, 192)
     
-    rate_string=f'{rate:.2f}?'.replace("-","@")
-    print(f"rate_string is {rate_string}")
+    rate_str=f'{rate:.2f}?'.replace("-","@")
+    print(f"rate_str is {rate_str}")
 
-    self.display.draw_text(root_x, root_y, rate_string, font_num, rate_col, landscape=True) 
+    self.display.draw_text(root_x, root_y, rate_str, font_num, rate_col, landscape=True) 
     # power up rectangle
     if solar_usage['power_up']=='on':
       self.display.draw_rectangle(root_x-3, root_y-70, 25,75, rate_col) # outline
