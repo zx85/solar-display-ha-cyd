@@ -82,7 +82,6 @@ def display_data(solar_usage,force=False):
         print("Timestamp changed - refreshing full display")
         gc.collect()
         display.solar_data(processed_solar_usage)
-        backlight_control(solar_usage["timestamp"]) # do stuff with the backlight
         # Update the previous values if they're different
         if solar_usage['timestamp']!=solar_usage['prev_timestamp']:
           solar_usage["prev_battery_int"] = int(float(solar_usage["battery_per"]))
@@ -98,6 +97,7 @@ def display_data(solar_usage,force=False):
 # Coroutine: get the solis data every 45 seconds
 async def timer_ha_data(ha_info):
     global solar_usage
+    global bl_state
     solar_usage["prev_battery_int"] = 0
     solar_usage["prev_timestamp"] = "0"
     while True:
@@ -108,7 +108,9 @@ async def timer_ha_data(ha_info):
         if "timestamp" in solar_dict:
             display.status_ok()
             solar_usage.update(solar_dict)
-            display_data(solar_usage)
+            backlight_control(solar_usage["timestamp"]) # do stuff with the backlight
+            if bl_state:
+                display_data(solar_usage)
         else:
             display.status_failed()
             print("No data returned")
