@@ -41,6 +41,9 @@ def get_ha(ha_info):
         gc.collect()
         resp=requests.get(url=ha_url,headers=headers,timeout=10)
         solar_dict=resp.json()['attributes']['info']
+        resp.close()  # Explicitly close to free memory
+        del resp
+        gc.collect()
         print(f"Here's what I got: {solar_dict}")
     except Exception as e:
         print(f" ... o no!\nI couldn't get the data from {ha_url}")
@@ -111,6 +114,8 @@ async def timer_ha_data(ha_info):
             print("No data returned")
             if "resp" in solar_dict:
                 solar_usage["resp"] = solar_dict["resp"]
+        # Force garbage collection after processing
+        gc.collect()
         await uasyncio.sleep(45)
 
 
@@ -198,7 +203,7 @@ def setup():
     if ip_address == "0.0.0.0":
         print("No WiFi connection - please check details in credentials.env")
         sys.exit()
-    gc.collect()
+    # Cleanup memory after network setup
 
     # display IP address
     print("\nWifi connected - IP address is: " + ip_address)
@@ -211,6 +216,7 @@ def setup():
     del sys.modules["captive_http"]
     del sys.modules["credentials"]
     del sys.modules["server"]
+    del wlan
     gc.collect()
 
     return(ha_info)
