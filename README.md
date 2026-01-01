@@ -24,9 +24,7 @@ It's around £10 and has everything I need.
 
 To get this working you'll first need to install MicroPython on your device. The instructions at [docs.micropython.org](https://docs.micropython.org/en/latest/esp32/tutorial/intro.html) are clear and easy to follow.
 
-I use Microsoft [Visual Studio Code](https://code.visualstudio.com/) with the [Pymakr-preview](https://marketplace.visualstudio.com/items?itemName=pycom.pymakr-preview) extension installed (**note:** it's the preview version that, at time of writing, actually works. For some reason the standard version doesn't!)
-
-It should be fairly straightforward to copy the code to the device using [adafruit-ampy](https://pypi.org/project/adafruit-ampy/), eg. `ampy -pCOM5 put main.py` etc...
+I use Microsoft [Visual Studio Code](https://code.visualstudio.com/), and copy the files to the device using [adafruit-ampy](https://pypi.org/project/adafruit-ampy/), eg. `ampy -pCOM5 put main.py` etc...
 
 
 ### Configuring Home Assistant
