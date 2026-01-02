@@ -105,7 +105,7 @@ async def timer_ha_data(ha_info):
         await uasyncio.sleep(1)
         gc.collect()
         solar_dict = get_ha(ha_info)
-        if "timestamp" in solar_dict:
+        if solar_dict.get("timestamp", None): # timestamp needs to be valid as well as present 
             display.status_ok()
             solar_usage.update(solar_dict)
             backlight_control(solar_usage["timestamp"]) # do stuff with the backlight
@@ -113,7 +113,7 @@ async def timer_ha_data(ha_info):
                 display_data(solar_usage)
         else:
             display.status_failed()
-            print("No data returned")
+            print("No or invalid data returned")
             if "resp" in solar_dict:
                 solar_usage["resp"] = solar_dict["resp"]
         # Force garbage collection after processing
