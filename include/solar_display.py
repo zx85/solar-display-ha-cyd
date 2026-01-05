@@ -171,7 +171,7 @@ class SolarDisplay:
             32, 206, "5", font_icon, color565(64, 64, 64), landscape=True
         )  # plug
 
-        draw_arc(self.display, 48, 162, 30, 5, power_used_per, color565(64, 0, 0))
+        # draw_arc(self.display, 48, 162, 30, 5, power_used_per, color565(64, 0, 0))
 
     def export_today(self, solar_usage):
         #########################
@@ -260,7 +260,7 @@ class SolarDisplay:
                 32, 116, "4", font_icon, color565(192, 192, 192), landscape=True
             )  # zap
 
-        draw_arc(self.display, 48, 74, 30, 5, grid_in_per, color565(64, 0, 0))
+        # draw_arc(self.display, 48, 74, 30, 5, grid_in_per, color565(64, 0, 0))
 
     def grid_in_today(self, solar_usage):
         ##########################
