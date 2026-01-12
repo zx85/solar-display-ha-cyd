@@ -1,4 +1,5 @@
 """ILI9341 LCD/Touch module."""
+
 from time import sleep
 from math import cos, sin, pi, radians
 from sys import implementation
@@ -13,7 +14,7 @@ def color565(r, g, b):
         g (int): Green value.
         b (int): Blue value.
     """
-    return (r & 0xf8) << 8 | (g & 0xfc) << 3 | b >> 3
+    return (r & 0xF8) << 8 | (g & 0xFC) << 3 | b >> 3
 
 
 class Display(object):
@@ -81,15 +82,9 @@ class Display(object):
     ENABLE3G = const(0xF2)  # Enable 3 gamma control
     PUMPRC = const(0xF7)  # Pump ratio control
 
-    ROTATE = {
-        0: 0x88,
-        90: 0xE8,
-        180: 0x48,
-        270: 0x28
-    }
+    ROTATE = {0: 0x88, 90: 0xE8, 180: 0x48, 270: 0x28}
 
-    def __init__(self, spi, cs, dc, rst,
-                 width=240, height=320, rotation=0):
+    def __init__(self, spi, cs, dc, rst, width=240, height=320, rotation=0):
         """Initialize OLED.
 
         Args:
@@ -108,12 +103,12 @@ class Display(object):
         self.width = width
         self.height = height
         if rotation not in self.ROTATE.keys():
-            raise RuntimeError('Rotation must be 0, 90, 180 or 270.')
+            raise RuntimeError("Rotation must be 0, 90, 180 or 270.")
         else:
             self.rotation = self.ROTATE[rotation]
 
         # Initialize GPIO pins and set implementation specific methods
-        if implementation.name == 'circuitpython':
+        if implementation.name == "circuitpython":
             self.cs.switch_to_output(value=True)
             self.dc.switch_to_output(value=False)
             self.rst.switch_to_output(value=True)
@@ -130,7 +125,7 @@ class Display(object):
         self.reset()
         # Send initialization commands
         self.write_cmd(self.SWRESET)  # Software reset
-        sleep(.1)
+        sleep(0.1)
         self.write_cmd(self.PWCTRB, 0x00, 0xC1, 0x30)  # Pwr ctrl B
         self.write_cmd(self.POSC, 0x64, 0x03, 0x12, 0x81)  # Pwr on seq. ctrl
         self.write_cmd(self.DTCA, 0x85, 0x00, 0x78)  # Driver timing ctrl A
@@ -148,14 +143,46 @@ class Display(object):
         self.write_cmd(self.DFUNCTR, 0x08, 0x82, 0x27)
         self.write_cmd(self.ENABLE3G, 0x00)  # Enable 3 gamma ctrl
         self.write_cmd(self.GAMMASET, 0x01)  # Gamma curve selected
-        self.write_cmd(self.GMCTRP1, 0x0F, 0x31, 0x2B, 0x0C, 0x0E, 0x08, 0x4E,
-                       0xF1, 0x37, 0x07, 0x10, 0x03, 0x0E, 0x09, 0x00)
-        self.write_cmd(self.GMCTRN1, 0x00, 0x0E, 0x14, 0x03, 0x11, 0x07, 0x31,
-                       0xC1, 0x48, 0x08, 0x0F, 0x0C, 0x31, 0x36, 0x0F)
+        self.write_cmd(
+            self.GMCTRP1,
+            0x0F,
+            0x31,
+            0x2B,
+            0x0C,
+            0x0E,
+            0x08,
+            0x4E,
+            0xF1,
+            0x37,
+            0x07,
+            0x10,
+            0x03,
+            0x0E,
+            0x09,
+            0x00,
+        )
+        self.write_cmd(
+            self.GMCTRN1,
+            0x00,
+            0x0E,
+            0x14,
+            0x03,
+            0x11,
+            0x07,
+            0x31,
+            0xC1,
+            0x48,
+            0x08,
+            0x0F,
+            0x0C,
+            0x31,
+            0x36,
+            0x0F,
+        )
         self.write_cmd(self.SLPOUT)  # Exit sleep
-        sleep(.1)
+        sleep(0.1)
         self.write_cmd(self.DISPLAY_ON)  # Display on
-        sleep(.1)
+        sleep(0.1)
         self.clear()
 
     def block(self, x0, y0, x1, y1, data):
@@ -168,10 +195,8 @@ class Display(object):
             y1 (int):  Ending Y position.
             data (bytes): Data buffer to write.
         """
-        self.write_cmd(self.SET_COLUMN,
-                       x0 >> 8, x0 & 0xff, x1 >> 8, x1 & 0xff)
-        self.write_cmd(self.SET_PAGE,
-                       y0 >> 8, y0 & 0xff, y1 >> 8, y1 & 0xff)
+        self.write_cmd(self.SET_COLUMN, x0 >> 8, x0 & 0xFF, x1 >> 8, x1 & 0xFF)
+        self.write_cmd(self.SET_PAGE, y0 >> 8, y0 & 0xFF, y1 >> 8, y1 & 0xFF)
         self.write_cmd(self.WRITE_RAM)
         self.write_data(data)
 
@@ -180,7 +205,7 @@ class Display(object):
         self.clear()
         self.display_off()
         self.spi.deinit()
-        print('display off')
+        print("display off")
 
     def clear(self, color=0, hlines=8):
         """Clear display.
@@ -198,11 +223,12 @@ class Display(object):
         """
         w = self.width
         h = self.height
-        assert hlines > 0 and h % hlines == 0, (
-            "hlines must be a non-zero factor of height.")
+        assert (
+            hlines > 0 and h % hlines == 0
+        ), "hlines must be a non-zero factor of height."
         # Clear display
         if color:
-            line = color.to_bytes(2, 'big') * (w * hlines)
+            line = color.to_bytes(2, "big") * (w * hlines)
         else:
             line = bytearray(w * 2 * hlines)
         for y in range(0, h, hlines):
@@ -294,8 +320,7 @@ class Display(object):
             self.draw_pixel(x0 + x, y0 - y, color)
             self.draw_pixel(x0 - x, y0 - y, color)
         # Region 2
-        p = round(b2 * (x + 0.5) * (x + 0.5) +
-                  a2 * (y - 1) * (y - 1) - a2 * b2)
+        p = round(b2 * (x + 0.5) * (x + 0.5) + a2 * (y - 1) * (y - 1) - a2 * b2)
         while y > 0:
             y -= 1
             py -= twoa2
@@ -321,7 +346,7 @@ class Display(object):
         """
         if self.is_off_grid(x, y, x + w - 1, y):
             return
-        line = color.to_bytes(2, 'big') * w
+        line = color.to_bytes(2, "big") * w
         self.block(x, y, x + w - 1, y, line)
 
     def draw_image(self, path, x=0, y=0, w=320, h=240):
@@ -346,18 +371,17 @@ class Display(object):
             if chunk_count:
                 for c in range(0, chunk_count):
                     buf = f.read(chunk_size)
-                    self.block(x, chunk_y,
-                               x2, chunk_y + chunk_height - 1,
-                               buf)
+                    if len(buf) > 0:
+                        self.block(x, chunk_y, x2, chunk_y + chunk_height - 1, buf)
                     chunk_y += chunk_height
             if remainder:
                 buf = f.read(remainder * w * 2)
-                self.block(x, chunk_y,
-                           x2, chunk_y + remainder - 1,
-                           buf)
+                if len(buf) > 0:
+                    self.block(x, chunk_y, x2, chunk_y + remainder - 1, buf)
 
-    def draw_letter(self, x, y, letter, font, color, background=0,
-                    landscape=False, rotate_180=False):
+    def draw_letter(
+        self, x, y, letter, font, color, background=0, landscape=False, rotate_180=False
+    ):
         """Draw a letter.
 
         Args:
@@ -393,15 +417,11 @@ class Display(object):
             y -= w
             if self.is_off_grid(x, y, x + h - 1, y + w - 1):
                 return 0, 0
-            self.block(x, y,
-                       x + h - 1, y + w - 1,
-                       buf)
+            self.block(x, y, x + h - 1, y + w - 1, buf)
         else:
             if self.is_off_grid(x, y, x + w - 1, y + h - 1):
                 return 0, 0
-            self.block(x, y,
-                       x + w - 1, y + h - 1,
-                       buf)
+            self.block(x, y, x + w - 1, y + h - 1, buf)
         return w, h
 
     def draw_line(self, x1, y1, x2, y2, color):
@@ -425,8 +445,7 @@ class Display(object):
             self.draw_vline(x1, y1, y2 - y1 + 1, color)
             return
         # Confirm coordinates in boundary
-        if self.is_off_grid(min(x1, x2), min(y1, y2),
-                            max(x1, x2), max(y1, y2)):
+        if self.is_off_grid(min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2)):
             return
         # Changes in x, y
         dx = x2 - x1
@@ -484,7 +503,7 @@ class Display(object):
         """
         if self.is_off_grid(x, y, x, y):
             return
-        self.block(x, y, x, y, color.to_bytes(2, 'big'))
+        self.block(x, y, x, y, color.to_bytes(2, "big"))
 
     def draw_polygon(self, sides, x0, y0, r, color, rotate=0):
         """Draw an n-sided regular polygon.
@@ -543,8 +562,18 @@ class Display(object):
             return
         self.block(x, y, x2, y2, buf)
 
-    def draw_text(self, x, y, text, font, color,  background=0,
-                  landscape=False, rotate_180=False, spacing=1):
+    def draw_text(
+        self,
+        x,
+        y,
+        text,
+        font,
+        color,
+        background=0,
+        landscape=False,
+        rotate_180=False,
+        spacing=1,
+    ):
         """Draw text.
 
         Args:
@@ -561,11 +590,12 @@ class Display(object):
         iterable_text = reversed(text) if rotate_180 else text
         for letter in iterable_text:
             # Get letter array and letter dimensions
-            w, h = self.draw_letter(x, y, letter, font, color, background,
-                                    landscape, rotate_180)
+            w, h = self.draw_letter(
+                x, y, letter, font, color, background, landscape, rotate_180
+            )
             # Stop on error
             if w == 0 or h == 0:
-                print('Invalid width {0} or height {1}'.format(w, h))
+                print("Invalid width {0} or height {1}".format(w, h))
                 return
 
             if landscape:
@@ -573,13 +603,13 @@ class Display(object):
                 if spacing:
                     self.fill_hrect(x, y - w - spacing, h, spacing, background)
                 # Position y for next letter
-                y -= (w + spacing)
+                y -= w + spacing
             else:
                 # Fill in spacing
                 if spacing:
                     self.fill_hrect(x + w, y, spacing, h, background)
                 # Position x for next letter
-                x += (w + spacing)
+                x += w + spacing
 
                 # # Fill in spacing
                 # if spacing:
@@ -587,8 +617,7 @@ class Display(object):
                 # # Position x for next letter
                 # x += w + spacing
 
-    def draw_text8x8(self, x, y, text, color,  background=0,
-                     rotate=0):
+    def draw_text8x8(self, x, y, text, color, background=0, rotate=0):
         """Draw text using built-in MicroPython 8x8 bit font.
 
         Args:
@@ -623,24 +652,21 @@ class Display(object):
             fbuf2 = FrameBuffer(buf2, h, w, RGB565)
             for y1 in range(h):
                 for x1 in range(w):
-                    fbuf2.pixel(y1, x1,
-                                fbuf.pixel(x1, (h - 1) - y1))
+                    fbuf2.pixel(y1, x1, fbuf.pixel(x1, (h - 1) - y1))
             self.block(x, y, x + (h - 1), y + w - 1, buf2)
         elif rotate == 180:
             buf2 = bytearray(w * 16)
             fbuf2 = FrameBuffer(buf2, w, h, RGB565)
             for y1 in range(h):
                 for x1 in range(w):
-                    fbuf2.pixel(x1, y1,
-                                fbuf.pixel((w - 1) - x1, (h - 1) - y1))
+                    fbuf2.pixel(x1, y1, fbuf.pixel((w - 1) - x1, (h - 1) - y1))
             self.block(x, y, x + w - 1, y + (h - 1), buf2)
         elif rotate == 270:
             buf2 = bytearray(w * 16)
             fbuf2 = FrameBuffer(buf2, h, w, RGB565)
             for y1 in range(h):
                 for x1 in range(w):
-                    fbuf2.pixel(y1, x1,
-                                fbuf.pixel((w - 1) - x1, y1))
+                    fbuf2.pixel(y1, x1, fbuf.pixel((w - 1) - x1, y1))
             self.block(x, y, x + (h - 1), y + w - 1, buf2)
 
     def draw_vline(self, x, y, h, color):
@@ -655,7 +681,7 @@ class Display(object):
         # Confirm coordinates in boundary
         if self.is_off_grid(x, y, x, y + h - 1):
             return
-        line = color.to_bytes(2, 'big') * h
+        line = color.to_bytes(2, "big") * h
         self.block(x, y, x, y + h - 1, line)
 
     def fill_circle(self, x0, y0, r, color):
@@ -724,8 +750,7 @@ class Display(object):
             self.draw_line(x0 + x, y0 - y, x0 + x, y0 + y, color)
             self.draw_line(x0 - x, y0 - y, x0 - x, y0 + y, color)
         # Region 2
-        p = round(b2 * (x + 0.5) * (x + 0.5) +
-                  a2 * (y - 1) * (y - 1) - a2 * b2)
+        p = round(b2 * (x + 0.5) * (x + 0.5) + a2 * (y - 1) * (y - 1) - a2 * b2)
         while y > 0:
             y -= 1
             py -= twoa2
@@ -755,18 +780,14 @@ class Display(object):
         chunk_size = chunk_height * w
         chunk_y = y
         if chunk_count:
-            buf = color.to_bytes(2, 'big') * chunk_size
+            buf = color.to_bytes(2, "big") * chunk_size
             for c in range(0, chunk_count):
-                self.block(x, chunk_y,
-                           x + w - 1, chunk_y + chunk_height - 1,
-                           buf)
+                self.block(x, chunk_y, x + w - 1, chunk_y + chunk_height - 1, buf)
                 chunk_y += chunk_height
 
         if remainder:
-            buf = color.to_bytes(2, 'big') * remainder * w
-            self.block(x, chunk_y,
-                       x + w - 1, chunk_y + remainder - 1,
-                       buf)
+            buf = color.to_bytes(2, "big") * remainder * w
+            self.block(x, chunk_y, x + w - 1, chunk_y + remainder - 1, buf)
 
     def fill_rectangle(self, x, y, w, h, color):
         """Draw a filled rectangle.
@@ -884,18 +905,14 @@ class Display(object):
         chunk_size = chunk_width * h
         chunk_x = x
         if chunk_count:
-            buf = color.to_bytes(2, 'big') * chunk_size
+            buf = color.to_bytes(2, "big") * chunk_size
             for c in range(0, chunk_count):
-                self.block(chunk_x, y,
-                           chunk_x + chunk_width - 1, y + h - 1,
-                           buf)
+                self.block(chunk_x, y, chunk_x + chunk_width - 1, y + h - 1, buf)
                 chunk_x += chunk_width
 
         if remainder:
-            buf = color.to_bytes(2, 'big') * remainder * h
-            self.block(chunk_x, y,
-                       chunk_x + remainder - 1, y + h - 1,
-                       buf)
+            buf = color.to_bytes(2, "big") * remainder * h
+            self.block(chunk_x, y, chunk_x + remainder - 1, y + h - 1, buf)
 
     def is_off_grid(self, xmin, ymin, xmax, ymax):
         """Check if coordinates extend past display boundaries.
@@ -909,18 +926,20 @@ class Display(object):
             boolean: False = Coordinates OK, True = Error.
         """
         if xmin < 0:
-            print('x-coordinate: {0} below minimum of 0.'.format(xmin))
+            print("x-coordinate: {0} below minimum of 0.".format(xmin))
             return True
         if ymin < 0:
-            print('y-coordinate: {0} below minimum of 0.'.format(ymin))
+            print("y-coordinate: {0} below minimum of 0.".format(ymin))
             return True
         if xmax >= self.width:
-            print('x-coordinate: {0} above maximum of {1}.'.format(
-                xmax, self.width - 1))
+            print(
+                "x-coordinate: {0} above maximum of {1}.".format(xmax, self.width - 1)
+            )
             return True
         if ymax >= self.height:
-            print('y-coordinate: {0} above maximum of {1}.'.format(
-                ymax, self.height - 1))
+            print(
+                "y-coordinate: {0} above maximum of {1}.".format(ymax, self.height - 1)
+            )
             return True
         return False
 
@@ -944,9 +963,9 @@ class Display(object):
         Notes: CircuitPython implemntation
         """
         self.rst.value = False
-        sleep(.05)
+        sleep(0.05)
         self.rst.value = True
-        sleep(.05)
+        sleep(0.05)
 
     def reset_mpy(self):
         """Perform reset: Low=initialization, High=normal operation.
@@ -954,9 +973,9 @@ class Display(object):
         Notes: MicroPython implemntation
         """
         self.rst(0)
-        sleep(.05)
+        sleep(0.05)
         self.rst(1)
-        sleep(.05)
+        sleep(0.05)
 
     def scroll(self, y):
         """Scroll display vertically.
@@ -976,13 +995,15 @@ class Display(object):
         if top + bottom <= self.height:
             middle = self.height - (top + bottom)
             print(top, middle, bottom)
-            self.write_cmd(self.VSCRDEF,
-                           top >> 8,
-                           top & 0xFF,
-                           middle >> 8,
-                           middle & 0xFF,
-                           bottom >> 8,
-                           bottom & 0xFF)
+            self.write_cmd(
+                self.VSCRDEF,
+                top >> 8,
+                top & 0xFF,
+                middle >> 8,
+                middle & 0xFF,
+                bottom >> 8,
+                bottom & 0xFF,
+            )
 
     def sleep(self, enable=True):
         """Enters or exits sleep mode.
