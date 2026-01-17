@@ -26,6 +26,7 @@ To get this working you'll first need to install MicroPython on your device. The
 
 I use Microsoft [Visual Studio Code](https://code.visualstudio.com/), and copy the files to the device using [adafruit-ampy](https://pypi.org/project/adafruit-ampy/), eg. `ampy -pCOM5 put main.py` etc...
 
+(I'm also exploring the [MPRemote](https://marketplace.visualstudio.com/items?itemName=DavesCodeMusings.mpremote) VScode extension, made by DavesCodeMusings which may well make it easier to upload files)
 
 ### Configuring Home Assistant
 
