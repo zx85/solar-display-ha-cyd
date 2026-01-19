@@ -607,7 +607,7 @@ class SolarDisplay:
         if len(bins) == 2:  # 2 chars per bin
             print(f"1 bins: {bins}")
             self.display.draw_image(
-                f"images/wheelie-bin-{bins}-48x33.raw", root_x + 29, root_y, 48, 33
+                f"images/wheelie-bin-{bins}-48x33.raw", root_x + 58, root_y, 48, 33
             )
         elif len(bins) == 4:  # only space for 2 bins
             print(f"2 bins: {bins}")
