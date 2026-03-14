@@ -49,6 +49,10 @@ def draw_arc(display, x, y, r1, r2, per, colour):
         each_angle += step
 
 
+def centre_text(y, text, max_text):
+    return y - (max_text - len(text)) * 10
+
+
 class SolarDisplay:
     def __init__(self):
         # Define the display doings
@@ -110,7 +114,12 @@ class SolarDisplay:
             solar_in_str = f"{solar_in_val:.0f}"
             solar_in_uom = "Wxnow"
         self.display.draw_text(
-            root_x, root_y, solar_in_str, font, color565(192, 255, 255), landscape=True
+            root_x,
+            centre_text(root_y, solar_in_str, 3),
+            solar_in_str,
+            font,
+            color565(192, 255, 255),
+            landscape=True,
         )  # solar_in value
         self.display.draw_vline(
             root_x + 39, root_y - 69, 69, color565(64, 64, 64)
@@ -170,11 +179,11 @@ class SolarDisplay:
         root_y = 319
         solar_today_max = 30.0
         solar_today_per = solar_usage["solar_today"] / solar_today_max * 100
-        solar_today_str = f'{solar_usage["solar_today"]}'[:4]
+        solar_today_str = f'{solar_usage["solar_today"]:.0f}'
         solar_today_uom = "kWhxtodey"
         self.display.draw_text(
             root_x,
-            root_y,
+            centre_text(root_y - 14, solar_today_str, 2),
             solar_today_str,
             font,
             color565(192, 255, 255),
@@ -216,9 +225,9 @@ class SolarDisplay:
         #####################
         root_x = 65
         root_y = 228
-        power_used_max = 15000
+        # power_used_max = 15000
         power_used_val = solar_usage["power_used"]
-        power_used_per = int(power_used_val / power_used_max * 100)
+        # power_used_per = int(power_used_val / power_used_max * 100)
         if power_used_val > 1000:
             power_used_str = f"{str(power_used_val/1000)}"[:4]
             power_used_uom = "kWxnow"
@@ -228,7 +237,7 @@ class SolarDisplay:
 
         self.display.draw_text(
             root_x,
-            root_y,
+            centre_text(root_y, power_used_str, 3),
             power_used_str,
             font,
             color565(255, 255, 255),
@@ -326,10 +335,10 @@ class SolarDisplay:
         ##################
         root_x = 65
         root_y = 138
-        grid_in_max = 15000
-        grid_out_max = 5000
+        # grid_in_max = 15000
+        # grid_out_max = 5000
         grid_in_val = solar_usage["grid_in"]
-        grid_in_per = int(abs(grid_in_val) / grid_in_max * 100)
+        # grid_in_per = int(abs(grid_in_val) / grid_in_max * 100)
         if abs(grid_in_val) > 1000:
             grid_in_str = f"{abs(grid_in_val/1000)}"[:4]
             grid_in_uom = "kWxnow"
@@ -343,12 +352,17 @@ class SolarDisplay:
         elif grid_in_val > 0:
             grid_colour = color565(128, 255, 128)  # green
             # recalibrate for export
-            grid_in_per = int(abs(grid_in_val) / grid_out_max * 100)
+            # grid_in_per = int(abs(grid_in_val) / grid_out_max * 100)
         else:
             grid_colour = color565(255, 255, 255)  # grey
 
         self.display.draw_text(
-            root_x, root_y, grid_in_str, font, grid_colour, landscape=True
+            root_x,
+            centre_text(root_y, grid_in_str, 3),
+            grid_in_str,
+            font,
+            grid_colour,
+            landscape=True,
         )  # grid_in value
         self.display.draw_vline(
             root_x + 39, root_y - 69, 69, color565(64, 64, 64)
