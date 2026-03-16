@@ -115,7 +115,7 @@ class SolarDisplay:
             solar_in_uom = "Wxnow"
         self.display.draw_text(
             root_x,
-            centre_text(root_y, solar_in_str, 3),
+            centre_text(root_y, solar_in_str, 4),
             solar_in_str,
             font,
             color565(192, 255, 255),
