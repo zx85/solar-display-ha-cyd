@@ -179,11 +179,11 @@ class SolarDisplay:
         root_y = 319
         solar_today_max = 30.0
         solar_today_per = solar_usage["solar_today"] / solar_today_max * 100
-        solar_today_str = f'{solar_usage["solar_today"]:.0f}'
+        solar_today_str = f'{solar_usage["solar_today"]}'[:4]
         solar_today_uom = "kWhxtodey"
         self.display.draw_text(
             root_x,
-            centre_text(root_y - 14, solar_today_str, 2),
+            centre_text(root_y, solar_today_str, 4),
             solar_today_str,
             font,
             color565(192, 255, 255),
