@@ -574,7 +574,7 @@ class SolarDisplay:
             rate_col = color565(192, 64, 64)
         # power up special colour
         if solar_usage["power_up"] == "on":
-            rate_col = color565(192, 64, 192)
+            rate_col = color565(192, 192, 192)
 
         rate_str_raw = f"{rate:.2f}p"
         rate_str = self.rate_lookup(rate_str_raw)
@@ -586,7 +586,7 @@ class SolarDisplay:
         # power up rectangle
         if solar_usage["power_up"] == "on":
             self.display.draw_rectangle(
-                root_x - 3, root_y - 70, 25, 75, rate_col
+                root_x - 3, root_y - 55, 20, 60, color565(192, 255, 192)
             )  # outline
 
     def presence(self, solar_usage):

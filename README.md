@@ -28,6 +28,19 @@ I use Microsoft [Visual Studio Code](https://code.visualstudio.com/), and copy t
 
 (I'm also exploring the [MPRemote](https://marketplace.visualstudio.com/items?itemName=DavesCodeMusings.mpremote) VScode extension, made by DavesCodeMusings which may well make it easier to upload files)
 
+Otherwise, you can use ampy to transfer files:
+```
+pip install adafruit-ampy
+ampy -pCOMx put main.py
+```
+
+and mpremote to monitor:
+```
+pip install mpremote
+mpremote repl
+```
+
+
 ### Configuring Home Assistant
 
 You'll need to do the following:
