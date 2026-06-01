@@ -12,7 +12,7 @@ def get_solar_data():
         "export_today": "sensor.solis_daily_on_grid_energy",  # exported today
         "solar_today": "sensor.solis_energy_today",  # solar today
         "grid_in_today": "sensor.solis_daily_grid_energy_purchased",  # grid today
-        "cur_rate": "sensor.octopus_energy_electricity_xxxx_yyyy_current_rate",  # current Octopus rate
+        "cur_rate": "sensor.octopus_energy_electricity_18p0906942_1012934837063_current_rate",  # current Octopus rate
         "solis_charging": "input_boolean.solar_battery_charging",  # Solis charging
         "solis_discharging": "input_boolean.solar_battery_discharging",  # Solis discharging
         "power_up": "input_boolean.octopus_power_up_active",  # Octopus Power ups
@@ -23,7 +23,10 @@ def get_solar_data():
     states["timestamp"] = state.getattr(sensor.solis_total_consumption_power)[
         "Last updated"
     ]
-    states["bins"] = state.getattr(sensor.upcoming_bins)["bins"]
+    try:
+        states["bins"] = state.getattr(sensor.upcoming_bins)["bins"]
+    except:
+        states["bins"] = ""
     presence_string = ""
     for person in ["james", "Beth", "Chris", "Lenni"]:
         if state.get(f"device_tracker.{person.lower()}_phone") == "home":
