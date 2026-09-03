@@ -87,17 +87,17 @@ def backlight_control(timestamp):
 def display_data(solar_usage, force=False):
     if processed_solar_usage := process_ha_response(solar_usage):
         print("Valid data received..")
-        if solar_usage["timestamp"] != solar_usage["prev_timestamp"] or force:
-            print("Timestamp changed - refreshing full display")
+        if solar_usage["runtime_today"] != solar_usage["prev_runtime_today"] or force:
+            print("runtime_today changed - refreshing full display")
             gc.collect()
             display.solar_data(processed_solar_usage)
             # Update the previous values if they're different
-            if solar_usage["timestamp"] != solar_usage["prev_timestamp"]:
+            if solar_usage["runtime_today"] != solar_usage["prev_runtime_today"]:
                 solar_usage["prev_battery_int"] = int(float(solar_usage["battery_per"]))
-                solar_usage["prev_timestamp"] = solar_usage["timestamp"]
+                solar_usage["prev_runtime_today"] = solar_usage["runtime_today"]
         else:
             # Just update the presence
-            print("Timestamp hasn't changed - only updating presence")
+            print("runtime_today hasn't changed - only updating presence")
             display.presence(solar_usage)
 
     else:  # data not valid
@@ -108,7 +108,7 @@ def display_data(solar_usage, force=False):
 async def timer_ha_data(ha_info):
     global solar_usage
     solar_usage["prev_battery_int"] = 0
-    solar_usage["prev_timestamp"] = "0"
+    solar_usage["prev_runtime_today"] = "0"
     while True:
         display.status_checking()
         await uasyncio.sleep(1)
