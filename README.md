@@ -45,8 +45,9 @@ mpremote repl
 
 You'll need to do the following:
 
-#### Add the Solis integration
-This can be found in the [HACS](https://hacs.xyz/) repository - details on how to set it up and configure it are [here](https://github.com/hultenvp/solis-sensor/).
+#### Add the Solis Cloud Monitoring integration
+This can be found in the [HACS](https://hacs.xyz/) repository - details on how to set it up and configure it are [here](https://github.com/john-lazarus/HomeAssistant-SolisCloudMonitoring).
+
 
 #### Add the PyScript integration
 This is another HACS integration - details are [here](https://hacs-pyscript.readthedocs.io/en/latest/)
